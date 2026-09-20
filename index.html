@@ -21,6 +21,10 @@
     font-family:-apple-system,"SF Pro Display","SF Pro Text",system-ui,"Helvetica Neue",Arial,sans-serif;}
   #stage{position:fixed;top:0;left:0;width:100%;touch-action:none;}
 
+  #app{position:absolute;inset:0;will-change:transform,opacity;}
+  #home{position:absolute;inset:0;z-index:30;display:none;background:#000;}
+  #home.on{display:block;}
+  #homeImg{width:100%;height:100%;object-fit:cover;display:block;}
   #bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none;}
   #bg.on{display:block;}
   #statusMask{position:absolute;top:0;left:0;right:0;height:calc(var(--sa-top) + 8px);background:#000;display:none;}
@@ -93,18 +97,21 @@
 </head>
 <body>
 <div id="stage">
-  <img id="bg" alt="">
-  <div id="statusMask"></div>
+  <div id="app">
+    <img id="bg" alt="">
+    <div id="statusMask"></div>
 
-  <div id="chrome">
-    <div id="dots"><i></i><i></i></div>
-    <div id="tabbar"></div>
+    <div id="chrome">
+      <div id="dots"><i></i><i></i></div>
+      <div id="tabbar"></div>
+    </div>
+
+    <div id="timeEl">00:00,00</div>
+    <div id="lapsEl"></div>
+    <div class="btn" id="btnL"><span>Runde</span></div>
+    <div class="btn" id="btnR"><span>Start</span></div>
   </div>
-
-  <div id="timeEl">00:00,00</div>
-  <div id="lapsEl"></div>
-  <div class="btn" id="btnL"><span>Runde</span></div>
-  <div class="btn" id="btnR"><span>Start</span></div>
+  <div id="home"><img id="homeImg" alt=""></div>
 </div>
 
 <div id="calib"></div>
@@ -147,12 +154,17 @@
     <div class="row"><label>Statusleiste</label><input type="range" id="m_mask" min="0" max="1" step="1"><span class="val" id="m_mask_v"></span></div>
     <div class="row"><label>Bild-Fit</label><input type="range" id="m_fit" min="0" max="1" step="1"><span class="val" id="m_fit_v"></span></div>
     <div class="row"><label>Fläche</label><input type="range" id="m_area" min="0" max="2" step="1"><span class="val" id="m_area_v"></span></div>
+    <div class="row"><label>Icon X</label><input type="range" id="m_ix" min="0" max="100" step="0.5"><span class="val" id="m_ix_v"></span></div>
+    <div class="row"><label>Icon Y</label><input type="range" id="m_iy" min="0" max="100" step="0.5"><span class="val" id="m_iy_v"></span></div>
     <div class="row"><label>Versatz</label><input type="range" id="m_shift" min="-80" max="80" step="1"><span class="val" id="m_shift_v"></span></div>
     <div id="diag" style="margin-top:10px;color:#98989d;font-size:10px;line-height:1.5;word-break:break-word"></div>
   </div>
   <div class="acts">
     <label for="file">Screenshot</label>
     <input type="file" id="file" accept="image/*" style="display:none">
+    <label for="fileHome">Homescreen</label>
+    <input type="file" id="fileHome" accept="image/*" style="display:none">
+    <button id="showHome">Home zeigen</button>
     <button id="clearBg">Bild weg</button>
     <button id="code">Code</button>
     <button id="reset" class="warn">Standard</button>
@@ -233,7 +245,7 @@ function fmt(ms){
 
 /* ---------- Konfiguration, Werte aus den Screenshots ---------- */
 var DEF={
-  bg:null, fit:1, mask:0, chrome:1, force:1, shift:0, area:0,
+  bg:null, home:null, ix:50, iy:50, fit:1, mask:0, chrome:1, force:1, shift:0, area:0,
   t:{size:22.6, weight:200, track:0, x:49.9, y:29.1},
   l:{on:1, size:17, rowh:10.78, w:92.45, h:34, x:50, y:57.44, col:1},
   b:{d:20.8, size:17.5, lx:14.47, rx:85.53, y:50.8}
@@ -262,7 +274,9 @@ var stage=document.getElementById("stage"), bgEl=document.getElementById("bg"),
     timeEl=document.getElementById("timeEl"), lapsEl=document.getElementById("lapsEl"),
     btnL=document.getElementById("btnL"), btnR=document.getElementById("btnR"),
     dots=document.getElementById("dots"), tabbar=document.getElementById("tabbar"),
-    calib=document.getElementById("calib"), panel=document.getElementById("panel");
+    calib=document.getElementById("calib"), panel=document.getElementById("panel"),
+    app=document.getElementById("app"), home=document.getElementById("home"),
+    homeImg=document.getElementById("homeImg");
 function vw(v){ return v*window.innerWidth/100; }
 
 /* iOS meldet einer Home-Bildschirm-App mit black-translucent eine um die
@@ -442,6 +456,45 @@ document.addEventListener("visibilitychange",function(){
   if(document.visibilityState==="visible"&&running) wake();
 });
 
+/* ---------- Fake-Home-Bildschirm ---------- */
+var atHome=false, multiTouch=false;
+function showHome(){
+  if(!CFG.home) return;
+  reset(); paintButtons();
+  homeImg.src=CFG.home;
+  home.classList.add("on");
+  home.style.transition="none"; home.style.opacity="1"; home.style.transform="scale(1)";
+  app.style.transition="none";
+  app.style.transformOrigin=(CFG.ix||50)+"% "+(CFG.iy||50)+"%";
+  app.style.transform="scale(.16)";
+  app.style.opacity="0";
+  app.style.borderRadius="22%";
+  atHome=true;
+}
+function openApp(){
+  if(!atHome) return;
+  atHome=false;
+  // Home skaliert leicht weg, App zoomt aus dem Icon auf
+  home.style.transition="transform .34s cubic-bezier(.32,.72,.3,1), opacity .26s ease-out";
+  home.style.transform="scale(1.14)"; home.style.opacity="0";
+  app.style.transition="transform .40s cubic-bezier(.22,.68,.28,1), opacity .18s ease-out, border-radius .34s ease-out";
+  app.style.transform="scale(1)"; app.style.opacity="1"; app.style.borderRadius="0";
+  setTimeout(function(){ home.classList.remove("on"); },430);
+}
+function clearAnim(){
+  atHome=false;
+  home.classList.remove("on");
+  app.style.transition="none"; app.style.transform="none";
+  app.style.opacity="1"; app.style.borderRadius="0";
+}
+home.addEventListener("touchstart",function(e){ if(e.touches.length>1) multiTouch=true; },{passive:true});
+home.addEventListener("touchend",function(e){
+  if(calibOn) return;
+  if(multiTouch){ if(e.touches.length===0) multiTouch=false; return; }
+  openApp();
+},{passive:true});
+home.addEventListener("click",function(){ if(!calibOn&&atHome) openApp(); });
+
 /* ---------- Eingabe ---------- */
 function bind(el,fn){
   el.addEventListener("pointerdown",function(e){
@@ -534,7 +587,7 @@ var MAP=[
   ["l_h","l","h",1],["l_x","l","x",1],["l_y","l","y",1],["l_col","l","col",0],
   ["b_d","b","d",1],["b_size","b","size",1],["bl_x","b","lx",1],["br_x","b","rx",1],["b_y","b","y",1],
   ["m_force",null,"force",0],["m_chrome",null,"chrome",0],["m_mask",null,"mask",0],["m_fit",null,"fit",0],
-  ["m_shift",null,"shift",0],["m_area",null,"area",0]
+  ["m_shift",null,"shift",0],["m_area",null,"area",0],["m_ix",null,"ix",1],["m_iy",null,"iy",1]
 ];
 function getv(g,k){ return g?CFG[g][k]:CFG[k]; }
 function setv(g,k,v){ if(g) CFG[g][k]=v; else CFG[k]=v; }
@@ -588,6 +641,16 @@ document.getElementById("code").addEventListener("click",function(){
     }catch(e){ window.alert("Code nicht lesbar."); }
   }
 });
+document.getElementById("fileHome").addEventListener("change",function(e){
+  var f=e.target.files&&e.target.files[0]; if(!f) return;
+  var r=new FileReader();
+  r.onload=function(){ CFG.home=r.result; save(); window.alert("Home-Bildschirm gespeichert."); };
+  r.readAsDataURL(f);
+});
+document.getElementById("showHome").addEventListener("click",function(){
+  if(!CFG.home){ window.alert("Erst einen Homescreen-Screenshot laden."); return; }
+  setCalib(false); showHome();
+});
 document.getElementById("file").addEventListener("change",function(e){
   var f=e.target.files&&e.target.files[0]; if(!f) return;
   var r=new FileReader();
@@ -604,6 +667,7 @@ window.addEventListener("orientationchange",function(){ setTimeout(function(){ f
 buildTabs();
 fitStage();
 applyLayout();
+if(CFG.home) showHome(); else clearAnim();
 requestAnimationFrame(frame);
 })();
 </script>
