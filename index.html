@@ -146,7 +146,9 @@
     <div class="row"><label>iOS-Rahmen</label><input type="range" id="m_chrome" min="0" max="1" step="1"><span class="val" id="m_chrome_v"></span></div>
     <div class="row"><label>Statusleiste</label><input type="range" id="m_mask" min="0" max="1" step="1"><span class="val" id="m_mask_v"></span></div>
     <div class="row"><label>Bild-Fit</label><input type="range" id="m_fit" min="0" max="1" step="1"><span class="val" id="m_fit_v"></span></div>
-    <div class="row"><label>Versatz</label><input type="range" id="m_shift" min="-40" max="40" step="1"><span class="val" id="m_shift_v"></span></div>
+    <div class="row"><label>Fläche</label><input type="range" id="m_area" min="0" max="2" step="1"><span class="val" id="m_area_v"></span></div>
+    <div class="row"><label>Versatz</label><input type="range" id="m_shift" min="-80" max="80" step="1"><span class="val" id="m_shift_v"></span></div>
+    <div id="diag" style="margin-top:10px;color:#98989d;font-size:10px;line-height:1.5;word-break:break-word"></div>
   </div>
   <div class="acts">
     <label for="file">Screenshot</label>
@@ -231,7 +233,7 @@ function fmt(ms){
 
 /* ---------- Konfiguration, Werte aus den Screenshots ---------- */
 var DEF={
-  bg:null, fit:1, mask:0, chrome:1, force:1, shift:0,
+  bg:null, fit:1, mask:0, chrome:1, force:1, shift:0, area:0,
   t:{size:22.6, weight:200, track:0, x:49.9, y:29.1},
   l:{on:1, size:17, rowh:10.78, w:92.45, h:34, x:50, y:57.44, col:1},
   b:{d:20.8, size:17.5, lx:14.47, rx:85.53, y:50.8}
@@ -267,16 +269,45 @@ function vw(v){ return v*window.innerWidth/100; }
    Statusleiste verkuerzte Viewport-Hoehe, zeichnet aber ueber den ganzen
    Schirm. Ohne Korrektur rutscht das Layout nach oben und unten bleibt ein
    schwarzer Balken. Darum rechnen wir mit der echten Bildschirmhoehe. */
-var STAGEH=window.innerHeight, OFFSET=0;
+var STAGEH=window.innerHeight, OFFSET=0, DIAG="";
+
+/* Misst env(safe-area-inset-top). Ist der Wert groesser null, liegt die Seite
+   UNTER der Statusleiste (Modus black-translucent) und das Fenster klebt oben,
+   der fehlende Streifen ist dann unten und nicht erreichbar. Ist er null,
+   beginnt das Fenster unter der Statusleiste und der fehlende Streifen ist
+   oben, den koennen wir wegschieben. */
+function probeInset(side){
+  var d=document.createElement("div");
+  d.style.cssText="position:fixed;left:0;width:0;visibility:hidden;"+
+    (side==="top" ? "top:0;height:env(safe-area-inset-top,0px);"
+                  : "bottom:0;height:env(safe-area-inset-bottom,0px);");
+  document.body.appendChild(d);
+  var v=d.offsetHeight;
+  document.body.removeChild(d);
+  return v;
+}
 function fitStage(){
-  var h=window.innerHeight, off=0;
-  if(window.navigator.standalone&&window.screen&&window.screen.height>h){
-    off=window.screen.height-h; h=window.screen.height;
+  var ih=window.innerHeight;
+  var sh=(window.screen&&window.screen.height)||ih;
+  var standalone=!!window.navigator.standalone;
+  var safeTop=probeInset("top"), safeBot=probeInset("bottom");
+  var h=ih, off=0, mode="Browser";
+  if(standalone){
+    if(sh>ih+2 && safeTop<=1){ off=sh-ih; h=sh; mode="unter Statusleiste"; }
+    else if(sh>ih+2){ mode="transluzent, Fenster kuerzer um "+(sh-ih)+" px"; }
+    else { mode="Vollbild"; }
   }
+  if(CFG.area===1){ h=ih; off=0; mode="manuell: Fenster"; }
+  else if(CFG.area===2){ h=sh; off=sh-ih; mode="manuell: Schirm"; }
   off+=(CFG.shift||0);
   STAGEH=h; OFFSET=off;
   stage.style.height=h+"px";  stage.style.top=(-off)+"px";
   calib.style.height=h+"px";  calib.style.top=(-off)+"px";
+  DIAG="Fenster "+window.innerWidth+"×"+ih+" · Schirm "+(window.screen?window.screen.width:"?")+"×"+sh+
+       " · safe oben "+safeTop+" unten "+safeBot+
+       " · standalone "+(standalone?"ja":"nein")+" · "+mode+" · Versatz "+off;
+  var el=document.getElementById("diag");
+  if(el) el.textContent=DIAG;
   return h;
 }
 
@@ -477,6 +508,7 @@ function positionBoxes(){
 }
 function setCalib(on){
   calibOn=on;
+  if(on) fitStage();
   calib.classList.toggle("on",on);
   panel.classList.toggle("on",on);
   if(on){ buildCalib(); syncInputs(); } else save();
@@ -502,7 +534,7 @@ var MAP=[
   ["l_h","l","h",1],["l_x","l","x",1],["l_y","l","y",1],["l_col","l","col",0],
   ["b_d","b","d",1],["b_size","b","size",1],["bl_x","b","lx",1],["br_x","b","rx",1],["b_y","b","y",1],
   ["m_force",null,"force",0],["m_chrome",null,"chrome",0],["m_mask",null,"mask",0],["m_fit",null,"fit",0],
-  ["m_shift",null,"shift",0]
+  ["m_shift",null,"shift",0],["m_area",null,"area",0]
 ];
 function getv(g,k){ return g?CFG[g][k]:CFG[k]; }
 function setv(g,k,v){ if(g) CFG[g][k]=v; else CFG[k]=v; }
@@ -510,6 +542,7 @@ function label(id,v){
   if(id==="m_force"||id==="m_chrome"||id==="m_mask"||id==="l_on"||id==="l_col") return v?"an":"aus";
   if(id==="m_fit") return v?"füllen":"passen";
   if(id==="m_shift") return (v>0?"+":"")+v+" px";
+  if(id==="m_area") return ["auto","Fenster","Schirm"][v];
   return (Math.round(v*10)/10)+"";
 }
 MAP.forEach(function(m){
@@ -517,7 +550,7 @@ MAP.forEach(function(m){
   el.addEventListener("input",function(){
     var v=m[3]?parseFloat(el.value):parseInt(el.value,10);
     setv(m[1],m[2],v); out.textContent=label(m[0],v);
-    if(m[0]==="m_shift") fitStage();
+    if(m[0]==="m_shift"||m[0]==="m_area") fitStage();
     applyLayout();
     if(m[0]==="l_on") buildCalib(); else positionBoxes();
     save();
