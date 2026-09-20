@@ -5,8 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="Uhr">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icon.png">
+<link rel="icon" href="icon.png">
 <meta name="theme-color" content="#000000">
 <title>Uhr</title>
 <style>
@@ -86,8 +89,6 @@
   .acts .ok{background:#0a84ff;}
   .acts .warn{background:#5a1f1f;}
   .sect{display:none;} .sect.on{display:block;}
-  #hint{position:fixed;left:0;right:0;top:72%;text-align:center;font-size:11px;
-    color:rgba(255,255,255,.3);z-index:40;transition:opacity 1s;}
 </style>
 </head>
 <body>
@@ -107,7 +108,6 @@
 </div>
 
 <div id="calib"></div>
-<div id="hint">Zwei Finger 1,5 s halten &rarr; Einstellungen</div>
 
 <div id="panel">
   <h3>Kalibrierung</h3>
@@ -146,6 +146,7 @@
     <div class="row"><label>iOS-Rahmen</label><input type="range" id="m_chrome" min="0" max="1" step="1"><span class="val" id="m_chrome_v"></span></div>
     <div class="row"><label>Statusleiste</label><input type="range" id="m_mask" min="0" max="1" step="1"><span class="val" id="m_mask_v"></span></div>
     <div class="row"><label>Bild-Fit</label><input type="range" id="m_fit" min="0" max="1" step="1"><span class="val" id="m_fit_v"></span></div>
+    <div class="row"><label>Versatz</label><input type="range" id="m_shift" min="-40" max="40" step="1"><span class="val" id="m_shift_v"></span></div>
   </div>
   <div class="acts">
     <label for="file">Screenshot</label>
@@ -230,7 +231,7 @@ function fmt(ms){
 
 /* ---------- Konfiguration, Werte aus den Screenshots ---------- */
 var DEF={
-  bg:null, fit:1, mask:0, chrome:1, force:1,
+  bg:null, fit:1, mask:0, chrome:1, force:1, shift:0,
   t:{size:22.6, weight:200, track:0, x:49.9, y:29.1},
   l:{on:1, size:17, rowh:10.78, w:92.45, h:34, x:50, y:57.44, col:1},
   b:{d:20.8, size:17.5, lx:14.47, rx:85.53, y:50.8}
@@ -259,21 +260,23 @@ var stage=document.getElementById("stage"), bgEl=document.getElementById("bg"),
     timeEl=document.getElementById("timeEl"), lapsEl=document.getElementById("lapsEl"),
     btnL=document.getElementById("btnL"), btnR=document.getElementById("btnR"),
     dots=document.getElementById("dots"), tabbar=document.getElementById("tabbar"),
-    calib=document.getElementById("calib"), panel=document.getElementById("panel"),
-    hint=document.getElementById("hint");
+    calib=document.getElementById("calib"), panel=document.getElementById("panel");
 function vw(v){ return v*window.innerWidth/100; }
 
 /* iOS meldet einer Home-Bildschirm-App mit black-translucent eine um die
    Statusleiste verkuerzte Viewport-Hoehe, zeichnet aber ueber den ganzen
    Schirm. Ohne Korrektur rutscht das Layout nach oben und unten bleibt ein
    schwarzer Balken. Darum rechnen wir mit der echten Bildschirmhoehe. */
-var STAGEH=window.innerHeight;
+var STAGEH=window.innerHeight, OFFSET=0;
 function fitStage(){
-  var h=window.innerHeight;
-  if(window.navigator.standalone&&window.screen&&window.screen.height>h) h=window.screen.height;
-  STAGEH=h;
-  stage.style.height=h+"px";
-  calib.style.height=h+"px";
+  var h=window.innerHeight, off=0;
+  if(window.navigator.standalone&&window.screen&&window.screen.height>h){
+    off=window.screen.height-h; h=window.screen.height;
+  }
+  off+=(CFG.shift||0);
+  STAGEH=h; OFFSET=off;
+  stage.style.height=h+"px";  stage.style.top=(-off)+"px";
+  calib.style.height=h+"px";  calib.style.top=(-off)+"px";
   return h;
 }
 
@@ -325,6 +328,7 @@ function applyLayout(){
     bgEl.classList.add("on");
   } else { bgEl.classList.remove("on"); bgEl.removeAttribute("src"); bgEl.removeAttribute("data-set"); }
   bgEl.style.objectFit=CFG.fit?"cover":"contain";
+  bgEl.style.height=STAGEH+"px";
   maskEl.classList.toggle("on",!!CFG.mask);
   chrome.classList.toggle("off",!CFG.chrome);
 
@@ -446,12 +450,12 @@ function buildCalib(){
     el.addEventListener("pointerdown",function(e){
       e.preventDefault(); el.setPointerCapture(e.pointerId);
       var g=d.get();
-      drag={dx:e.clientX-window.innerWidth*g.x/100, dy:e.clientY-STAGEH*g.y/100};
+      drag={dx:e.clientX-window.innerWidth*g.x/100, dy:e.clientY-(STAGEH*g.y/100-OFFSET)};
     },{passive:false});
     el.addEventListener("pointermove",function(e){
       if(!drag) return; e.preventDefault();
       var x=(e.clientX-drag.dx)/window.innerWidth*100;
-      var y=(e.clientY-drag.dy)/STAGEH*100;
+      var y=(e.clientY-drag.dy+OFFSET)/STAGEH*100;
       d.set(Math.max(0,Math.min(100,+x.toFixed(1))),Math.max(0,Math.min(100,+y.toFixed(1))));
       applyLayout(); syncInputs(); positionBoxes();
     },{passive:false});
@@ -497,13 +501,15 @@ var MAP=[
   ["l_on","l","on",0],["l_size","l","size",1],["l_rowh","l","rowh",1],["l_w","l","w",1],
   ["l_h","l","h",1],["l_x","l","x",1],["l_y","l","y",1],["l_col","l","col",0],
   ["b_d","b","d",1],["b_size","b","size",1],["bl_x","b","lx",1],["br_x","b","rx",1],["b_y","b","y",1],
-  ["m_force",null,"force",0],["m_chrome",null,"chrome",0],["m_mask",null,"mask",0],["m_fit",null,"fit",0]
+  ["m_force",null,"force",0],["m_chrome",null,"chrome",0],["m_mask",null,"mask",0],["m_fit",null,"fit",0],
+  ["m_shift",null,"shift",0]
 ];
 function getv(g,k){ return g?CFG[g][k]:CFG[k]; }
 function setv(g,k,v){ if(g) CFG[g][k]=v; else CFG[k]=v; }
 function label(id,v){
   if(id==="m_force"||id==="m_chrome"||id==="m_mask"||id==="l_on"||id==="l_col") return v?"an":"aus";
   if(id==="m_fit") return v?"füllen":"passen";
+  if(id==="m_shift") return (v>0?"+":"")+v+" px";
   return (Math.round(v*10)/10)+"";
 }
 MAP.forEach(function(m){
@@ -511,6 +517,7 @@ MAP.forEach(function(m){
   el.addEventListener("input",function(){
     var v=m[3]?parseFloat(el.value):parseInt(el.value,10);
     setv(m[1],m[2],v); out.textContent=label(m[0],v);
+    if(m[0]==="m_shift") fitStage();
     applyLayout();
     if(m[0]==="l_on") buildCalib(); else positionBoxes();
     save();
@@ -565,8 +572,6 @@ buildTabs();
 fitStage();
 applyLayout();
 requestAnimationFrame(frame);
-setTimeout(function(){ hint.style.opacity="0"; },6000);
-setTimeout(function(){ hint.style.display="none"; },8000);
 })();
 </script>
 </body>
