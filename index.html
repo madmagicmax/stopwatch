@@ -21,10 +21,17 @@
     font-family:-apple-system,"SF Pro Display","SF Pro Text",system-ui,"Helvetica Neue",Arial,sans-serif;}
   #stage{position:fixed;top:0;left:0;width:100%;touch-action:none;}
 
-  #app{position:absolute;inset:0;will-change:transform,opacity;}
-  #home{position:absolute;inset:0;z-index:30;display:none;background:#000;}
-  #home.on{display:block;}
-  #homeImg{width:100%;height:100%;object-fit:cover;display:block;}
+  #app{position:absolute;inset:0;}
+  #tCount{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;line-height:1;
+    background:#000;font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;display:none;z-index:12;}
+  #tRing{position:absolute;transform:translate(-50%,-50%);background:#000;border-radius:50%;display:none;z-index:12;}
+  #tRing svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg);}
+  #tRing circle{fill:none;stroke:#ff9f0a;stroke-linecap:butt;}
+  #tIcon{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;}
+  #tHitL,#tHitR,#tHitRing{position:absolute;transform:translate(-50%,-50%);border-radius:50%;display:none;z-index:22;}
+  #tabhit{position:absolute;transform:translate(-50%,-50%);display:flex;z-index:20;}
+  #tabhit i{flex:1;height:100%;display:block;}
+  #calib.on ~ #stage #tabhit{outline:1px dashed rgba(10,132,255,.6);}
   #bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none;}
   #bg.on{display:block;}
   #statusMask{position:absolute;top:0;left:0;right:0;height:calc(var(--sa-top) + 8px);background:#000;display:none;}
@@ -59,8 +66,9 @@
   #tabbar .tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
     gap:3px;position:relative;height:100%;}
   #tabbar .tab svg{display:block;}
-  #tabbar .tab em{font-style:normal;font-size:10px;font-weight:500;color:#fff;letter-spacing:.1px;}
-  #tabbar .tab.sel em{color:#ff9f0a;}
+  #tabbar .tab{color:#fff;}
+  #tabbar .tab.sel{color:#ff9f0a;}
+  #tabbar .tab em{font-style:normal;font-size:10px;font-weight:500;color:inherit;letter-spacing:.1px;}
   #tabbar .pill{position:absolute;border-radius:999px;background:#2f2f31;z-index:0;}
   #tabbar .tab>*{position:relative;z-index:1;}
   #chrome{position:absolute;inset:0;}
@@ -110,8 +118,11 @@
     <div id="lapsEl"></div>
     <div class="btn" id="btnL"><span>Runde</span></div>
     <div class="btn" id="btnR"><span>Start</span></div>
+    <div id="tCount"></div>
+    <div id="tRing"><svg viewBox="0 0 100 100"><circle id="tArc" cx="50" cy="50" r="45"/></svg><div id="tIcon"></div></div>
+    <div id="tabhit"><i></i><i></i><i></i><i></i></div>
+    <div id="tHitL"></div><div id="tHitR"></div><div id="tHitRing"></div>
   </div>
-  <div id="home"><img id="homeImg" alt=""></div>
 </div>
 
 <div id="calib"></div>
@@ -122,6 +133,7 @@
     <button data-sect="s-time" class="sel">Zeit</button>
     <button data-sect="s-laps">Runden</button>
     <button data-sect="s-btn">Tasten</button>
+    <button data-sect="s-timer">Timer</button>
     <button data-sect="s-misc">Allgemein</button>
   </div>
   <div class="sect on" id="s-time">
@@ -141,6 +153,22 @@
     <div class="row"><label>Oben</label><input type="range" id="l_y" min="0" max="100" step="0.1"><span class="val" id="l_y_v"></span></div>
     <div class="row"><label>Grün/Rot</label><input type="range" id="l_col" min="0" max="1" step="1"><span class="val" id="l_col_v"></span></div>
   </div>
+  <div class="sect" id="s-timer">
+    <div class="row"><label>Timer aktiv</label><input type="range" id="tm_on" min="0" max="1" step="1"><span class="val" id="tm_on_v"></span></div>
+    <div class="row"><label>Dauer Min</label><input type="range" id="tm_min" min="0" max="59" step="1"><span class="val" id="tm_min_v"></span></div>
+    <div class="row"><label>Dauer Sek</label><input type="range" id="tm_sek" min="0" max="59" step="1"><span class="val" id="tm_sek_v"></span></div>
+    <div class="row"><label>Zahl Größe</label><input type="range" id="tm_csize" min="8" max="40" step="0.2"><span class="val" id="tm_csize_v"></span></div>
+    <div class="row"><label>Zahl Breite</label><input type="range" id="tm_cwidth" min="0.3" max="1.3" step="0.01"><span class="val" id="tm_cwidth_v"></span></div>
+    <div class="row"><label>Zahl Stärke</label><input type="range" id="tm_cweight" min="100" max="500" step="50"><span class="val" id="tm_cweight_v"></span></div>
+    <div class="row"><label>Zahl X</label><input type="range" id="tm_cx" min="0" max="100" step="0.1"><span class="val" id="tm_cx_v"></span></div>
+    <div class="row"><label>Zahl Y</label><input type="range" id="tm_cy" min="0" max="100" step="0.1"><span class="val" id="tm_cy_v"></span></div>
+    <div class="row"><label>Ring X</label><input type="range" id="tm_rx" min="0" max="100" step="0.1"><span class="val" id="tm_rx_v"></span></div>
+    <div class="row"><label>Ring Y</label><input type="range" id="tm_ry" min="0" max="100" step="0.1"><span class="val" id="tm_ry_v"></span></div>
+    <div class="row"><label>Ring Größe</label><input type="range" id="tm_rd" min="6" max="30" step="0.1"><span class="val" id="tm_rd_v"></span></div>
+    <div class="row"><label>Ring Stärke</label><input type="range" id="tm_rw" min="0.3" max="3" step="0.05"><span class="val" id="tm_rw_v"></span></div>
+    <div class="row"><label>Tasten Y</label><input type="range" id="tm_by" min="30" max="90" step="0.1"><span class="val" id="tm_by_v"></span></div>
+  </div>
+
   <div class="sect" id="s-btn">
     <div class="row"><label>Durchmesser</label><input type="range" id="b_d" min="10" max="35" step="0.1"><span class="val" id="b_d_v"></span></div>
     <div class="row"><label>Schrift</label><input type="range" id="b_size" min="10" max="26" step="0.5"><span class="val" id="b_size_v"></span></div>
@@ -153,18 +181,16 @@
     <div class="row"><label>iOS-Rahmen</label><input type="range" id="m_chrome" min="0" max="1" step="1"><span class="val" id="m_chrome_v"></span></div>
     <div class="row"><label>Statusleiste</label><input type="range" id="m_mask" min="0" max="1" step="1"><span class="val" id="m_mask_v"></span></div>
     <div class="row"><label>Bild-Fit</label><input type="range" id="m_fit" min="0" max="1" step="1"><span class="val" id="m_fit_v"></span></div>
+    <div class="row"><label>Ansicht</label><input type="range" id="m_view" min="0" max="5" step="1"><span class="val" id="m_view_v"></span></div>
+    <div class="row"><label>Leiste Y</label><input type="range" id="tb_y" min="80" max="100" step="0.1"><span class="val" id="tb_y_v"></span></div>
+    <div class="row"><label>Leiste H</label><input type="range" id="tb_h" min="8" max="24" step="0.1"><span class="val" id="tb_h_v"></span></div>
     <div class="row"><label>Fläche</label><input type="range" id="m_area" min="0" max="2" step="1"><span class="val" id="m_area_v"></span></div>
-    <div class="row"><label>Icon X</label><input type="range" id="m_ix" min="0" max="100" step="0.5"><span class="val" id="m_ix_v"></span></div>
-    <div class="row"><label>Icon Y</label><input type="range" id="m_iy" min="0" max="100" step="0.5"><span class="val" id="m_iy_v"></span></div>
     <div class="row"><label>Versatz</label><input type="range" id="m_shift" min="-80" max="80" step="1"><span class="val" id="m_shift_v"></span></div>
     <div id="diag" style="margin-top:10px;color:#98989d;font-size:10px;line-height:1.5;word-break:break-word"></div>
   </div>
   <div class="acts">
     <label for="file">Screenshot</label>
     <input type="file" id="file" accept="image/*" style="display:none">
-    <label for="fileHome">Homescreen</label>
-    <input type="file" id="fileHome" accept="image/*" style="display:none">
-    <button id="showHome">Home zeigen</button>
     <button id="clearBg">Bild weg</button>
     <button id="code">Code</button>
     <button id="reset" class="warn">Standard</button>
@@ -245,10 +271,15 @@ function fmt(ms){
 
 /* ---------- Konfiguration, Werte aus den Screenshots ---------- */
 var DEF={
-  bg:null, home:null, ix:50, iy:50, fit:1, mask:0, chrome:1, force:1, shift:0, area:0,
+  bg:null, bg1:null, bg2:null, bg3:null, bg3r:null, bg3p:null, fit:1, mask:0, chrome:1, force:1, shift:0, area:0,
   t:{size:22.6, weight:200, track:0, x:49.9, y:29.1},
   l:{on:1, size:17, rowh:10.78, w:92.45, h:34, x:50, y:57.44, col:1},
-  b:{d:20.8, size:17.5, lx:14.47, rx:85.53, y:50.8}
+  b:{d:20.8, size:17.5, lx:14.47, rx:85.53, y:50.8},
+  tb:{y:94.03, h:15.34, w:89.47}, view:2,
+  tm:{on:0, min:7, sek:10,
+      cx:22.0, cy:28.6, csize:26.2, cweight:250, cwidth:0.55,
+      rx:85.53, ry:27.86, rd:15.84, rw:1.0,
+      by:56.24}
 };
 var CFG=load();
 function load(){
@@ -275,8 +306,11 @@ var stage=document.getElementById("stage"), bgEl=document.getElementById("bg"),
     btnL=document.getElementById("btnL"), btnR=document.getElementById("btnR"),
     dots=document.getElementById("dots"), tabbar=document.getElementById("tabbar"),
     calib=document.getElementById("calib"), panel=document.getElementById("panel"),
-    app=document.getElementById("app"), home=document.getElementById("home"),
-    homeImg=document.getElementById("homeImg");
+    app=document.getElementById("app"), tabhit=document.getElementById("tabhit"),
+    tCount=document.getElementById("tCount"), tRing=document.getElementById("tRing"),
+    tArc=document.getElementById("tArc"), tIcon=document.getElementById("tIcon"),
+    tHitL=document.getElementById("tHitL"), tHitR=document.getElementById("tHitR"),
+    tHitRing=document.getElementById("tHitRing");
 function vw(v){ return v*window.innerWidth/100; }
 
 /* iOS meldet einer Home-Bildschirm-App mit black-translucent eine um die
@@ -327,16 +361,16 @@ function fitStage(){
 
 /* ---------- Tab-Leiste ---------- */
 var ICONS={
-  welt:'<svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5"><circle cx="12" cy="12" r="9.2"/><ellipse cx="12" cy="12" rx="4" ry="9.2"/><path d="M2.9 12h18.2M4.6 6.6h14.8M4.6 17.4h14.8"/></svg>',
-  weck:'<svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5"><circle cx="12" cy="13.2" r="7.7"/><path d="M12 9.3v4.1h3.1" stroke-linecap="round"/><path d="M4.1 5.4c1-1.4 2.6-2.3 3.9-2.6M19.9 5.4c-1-1.4-2.6-2.3-3.9-2.6" stroke-linecap="round"/></svg>',
-  stop:'<svg width="27" height="27" viewBox="0 0 24 24"><circle cx="12" cy="13.4" r="8.2" fill="#ff9f0a"/><rect x="10.6" y="1.4" width="2.8" height="2.6" rx="1" fill="#ff9f0a"/><path d="M12 8.6v4.8" stroke="#1c1c1e" stroke-width="1.7" stroke-linecap="round"/><path d="M17.4 5.3l1.9-1.9" stroke="#ff9f0a" stroke-width="2" stroke-linecap="round"/></svg>',
-  timer:'<svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5"><path d="M20.4 8.4a9 9 0 1 1-3.6-4.2" stroke-linecap="round"/><path d="M12 12V6.2" stroke-linecap="round"/><path d="M19.2 2.6v4.3h-4.3" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+  welt:'<svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9.2"/><ellipse cx="12" cy="12" rx="4" ry="9.2"/><path d="M2.9 12h18.2M4.6 6.6h14.8M4.6 17.4h14.8"/></svg>',
+  weck:'<svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="13.2" r="7.7"/><path d="M12 9.3v4.1h3.1" stroke-linecap="round"/><path d="M4.1 5.4c1-1.4 2.6-2.3 3.9-2.6M19.9 5.4c-1-1.4-2.6-2.3-3.9-2.6" stroke-linecap="round"/></svg>',
+  stop:'<svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="13.6" r="7.9"/><path d="M12 8.9v4.7" stroke-linecap="round"/><path d="M10.7 2.6h2.6" stroke-linecap="round" stroke-width="2"/><path d="M17.6 5.2l1.5-1.5" stroke-linecap="round"/></svg>',
+  timer:'<svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.4 8.4a9 9 0 1 1-3.6-4.2" stroke-linecap="round"/><path d="M12 12V6.2" stroke-linecap="round"/><path d="M19.2 2.6v4.3h-4.3" stroke-linecap="round" stroke-linejoin="round"/></svg>'
 };
 function buildTabs(){
   tabbar.innerHTML='<div class="pill"></div>'+
     '<div class="tab">'+ICONS.welt+'<em>Weltuhr</em></div>'+
     '<div class="tab">'+ICONS.weck+'<em>Wecker</em></div>'+
-    '<div class="tab sel">'+ICONS.stop+'<em>Stoppuhr</em></div>'+
+    '<div class="tab">'+ICONS.stop+'<em>Stoppuhr</em></div>'+
     '<div class="tab">'+ICONS.timer+'<em>Timer</em></div>';
 }
 function layoutTabs(){
@@ -368,10 +402,7 @@ function layoutDots(){
 
 /* ---------- Layout ---------- */
 function applyLayout(){
-  if(CFG.bg){
-    if(bgEl.getAttribute("data-set")!=="1"){ bgEl.src=CFG.bg; bgEl.setAttribute("data-set","1"); }
-    bgEl.classList.add("on");
-  } else { bgEl.classList.remove("on"); bgEl.removeAttribute("src"); bgEl.removeAttribute("data-set"); }
+  setBgFor(curTab);
   bgEl.style.objectFit=CFG.fit?"cover":"contain";
   bgEl.style.height=STAGEH+"px";
   maskEl.classList.toggle("on",!!CFG.mask);
@@ -388,7 +419,7 @@ function applyLayout(){
   lapsEl.style.width=CFG.l.w+"%";
   lapsEl.style.height=CFG.l.h+"%";
   lapsEl.style.fontSize=CFG.l.size+"px";
-  lapsEl.style.display=CFG.l.on?"block":"none";
+  lapsEl.style.display=(CFG.l.on&&curTab===2)?"block":"none";
   lapsEl.classList.toggle("topline",!!CFG.chrome);
 
   btnL.style.left=CFG.b.lx+"%"; btnR.style.left=CFG.b.rx+"%";
@@ -396,7 +427,7 @@ function applyLayout(){
   [btnL,btnR].forEach(function(el){
     el.style.width=CFG.b.d+"vw"; el.style.height=CFG.b.d+"vw"; el.style.fontSize=CFG.b.size+"px";
   });
-  layoutTabs(); layoutDots(); paintButtons();
+  layoutTabs(); layoutDots(); layoutHit(); layoutTimer(); paintButtons();
 }
 
 function paintButtons(){
@@ -412,6 +443,120 @@ function paintButtons(){
   else if(running){ btnL.style.background="#333333"; btnL.style.color="#fff"; ls.textContent="Runde"; }
   else { btnL.style.background="#333333"; btnL.style.color="#fff"; ls.textContent="Löschen"; }
 }
+
+/* ---------- Tabs ---------- */
+var TABKEYS=["bg1","bg2","bg","bg3"];  // in Reihenfolge der Leiste
+var VIEWS=[{t:0,k:"bg1"},{t:1,k:"bg2"},{t:2,k:"bg"},
+           {t:3,k:"bg3",ts:0},{t:3,k:"bg3r",ts:1},{t:3,k:"bg3p",ts:2}];
+var curTab=2, bgKey=null;
+function bgFor(i){
+  if(i===3) return CFG[["bg3","bg3r","bg3p"][tState]]||CFG.bg3||null;
+  return CFG[TABKEYS[i]]||null;
+}
+function setBgFor(i){
+  var src=bgFor(i), key=i+":"+(src?src.length:0);
+  if(key!==bgKey){
+    bgKey=key;
+    if(src){ bgEl.src=src; bgEl.classList.add("on"); }
+    else { bgEl.classList.remove("on"); bgEl.removeAttribute("src"); }
+  }
+}
+function setTab(i){
+  curTab=i;
+  setBgFor(i);
+  var swOn=(i===2);
+  timeEl.style.display=swOn?"block":"none";
+  lapsEl.style.display=(swOn&&CFG.l.on)?"block":"none";
+  btnL.style.display=swOn?"flex":"none";
+  btnR.style.display=swOn?"flex":"none";
+  dots.style.display=swOn?"flex":"none";
+  paintTimer();
+  markTab(i);
+}
+function markTab(i){
+  var tabs=tabbar.querySelectorAll(".tab"), pill=tabbar.querySelector(".pill");
+  for(var k=0;k<tabs.length;k++) tabs[k].classList.toggle("sel",k===i);
+  if(pill){ var tw=tabbar.offsetWidth/4; pill.style.left=(tw*i - tw*0.025)+"px"; }
+}
+function layoutHit(){
+  tabhit.style.left="50%";
+  tabhit.style.top=CFG.tb.y+"%";
+  tabhit.style.width=CFG.tb.w+"%";
+  tabhit.style.height=CFG.tb.h+"vw";
+}
+tabhit.querySelectorAll("i").forEach(function(el,i){
+  el.addEventListener("pointerdown",function(e){
+    if(calibOn) return;
+    e.preventDefault(); setTab(i);
+  },{passive:false});
+});
+
+/* ---------- Timer ---------- */
+var tState=0, tLeft=0, tT0=0;
+function tTotal(){ return (CFG.tm.min*60+CFG.tm.sek)*1000; }
+function tNow(){ return tState===1 ? Math.max(0, tLeft-(performance.now()-tT0)) : tLeft; }
+function tSet(st){ tState=st; bgKey=null; setBgFor(3); paintTimer(); }
+function tStart(){ tLeft=tTotal(); tT0=performance.now(); tSet(1); wake(); }
+function tToggle(){
+  if(tState===1){ tLeft=tNow(); tSet(2); release(); }
+  else if(tState===2){ tT0=performance.now(); tSet(1); wake(); }
+}
+function tCancel(){ tLeft=0; tSet(0); release(); }
+function fmtT(ms){
+  var t=Math.ceil(ms/1000), h=Math.floor(t/3600), m=Math.floor(t/60)%60, sec=t%60;
+  return h>0 ? (h+":"+two(m)+":"+two(sec)) : (two(m)+":"+two(sec));
+}
+function paintTimer(){
+  if(!CFG.tm.on && !calibOn) tState=0;
+  var on=(curTab===3)&&!!CFG.tm.on, live=on&&tState>0;
+  tCount.style.display=live?"block":"none";
+  tRing.style.display=live?"block":"none";
+  tHitL.style.display=(on&&tState===0)?"block":"none";
+  tHitR.style.display=(on&&tState===0)?"block":"none";
+  tHitRing.style.display=live?"block":"none";
+  if(!live) return;
+  tCount.style.color=(tState===1)?"#fff":"#8e8e93";
+  tArc.style.stroke=(tState===1)?"#ff9f0a":"#ff9f0a";
+  var w=vw(CFG.tm.rd)*0.26;
+  tIcon.innerHTML = (tState===1)
+    ? '<svg width="'+w+'" height="'+w+'" viewBox="0 0 10 12"><rect x="0" y="0" width="3.4" height="12" rx="1.1" fill="#ff9f0a"/><rect x="6.6" y="0" width="3.4" height="12" rx="1.1" fill="#ff9f0a"/></svg>'
+    : '<svg width="'+w+'" height="'+w+'" viewBox="0 0 11 12"><path d="M1 1.1 10 6 1 10.9z" fill="#ff9f0a"/></svg>';
+}
+function layoutTimer(){
+  var t=CFG.tm;
+  tCount.style.left=t.cx+"%"; tCount.style.top=t.cy+"%";
+  tCount.style.fontSize=t.csize+"vw"; tCount.style.fontWeight=t.cweight;
+  tCount.style.transform="translate(-50%,-50%) scaleX("+t.cwidth+")";
+  tCount.style.padding="0.06em 0.10em";
+  var d=vw(t.rd);
+  tRing.style.left=t.rx+"%"; tRing.style.top=t.ry+"%";
+  tRing.style.width=(d*1.16)+"px"; tRing.style.height=(d*1.16)+"px";
+  var sv=tRing.querySelector("svg");
+  sv.style.inset=(d*0.08)+"px";
+  sv.style.width=d+"px"; sv.style.height=d+"px";
+  tArc.style.strokeWidth=(vw(t.rw)/d*100)+"";
+  [[tHitL,14.47,t.by],[tHitR,85.53,t.by],[tHitRing,t.rx,t.ry]].forEach(function(p,i){
+    p[0].style.left=p[1]+"%"; p[0].style.top=p[2]+"%";
+    var dd=(i===2)?d*1.16:vw(CFG.b.d);
+    p[0].style.width=dd+"px"; p[0].style.height=dd+"px";
+  });
+}
+function renderTimer(){
+  if(curTab!==3||tState===0) return;
+  var left=tNow();
+  tCount.textContent=fmtT(left);
+  var frac=Math.max(0,Math.min(1,left/Math.max(1,tTotal())));
+  var C=2*Math.PI*45;
+  tArc.style.strokeDasharray=C;
+  tArc.style.strokeDashoffset=C*(1-frac);
+  if(tState===1&&left<=0) tCancel();
+}
+function bindHit(el,fn){
+  el.addEventListener("pointerdown",function(e){ if(calibOn) return; e.preventDefault(); fn(); },{passive:false});
+}
+bindHit(tHitR,function(){ tStart(); });
+bindHit(tHitL,function(){ tCancel(); });
+bindHit(tHitRing,function(){ tToggle(); });
 
 /* ---------- Rendering ---------- */
 var lastLaps="", lastTime="";
@@ -444,6 +589,7 @@ function frame(){
   var t=nowMs(), s=fmt(t);
   if(s!==lastTime){ timeEl.textContent=s; lastTime=s; }
   renderLaps(t);
+  renderTimer();
   requestAnimationFrame(frame);
 }
 
@@ -455,45 +601,6 @@ function release(){ if(wl){ try{wl.release();}catch(e){} wl=null; } }
 document.addEventListener("visibilitychange",function(){
   if(document.visibilityState==="visible"&&running) wake();
 });
-
-/* ---------- Fake-Home-Bildschirm ---------- */
-var atHome=false, multiTouch=false;
-function showHome(){
-  if(!CFG.home) return;
-  reset(); paintButtons();
-  homeImg.src=CFG.home;
-  home.classList.add("on");
-  home.style.transition="none"; home.style.opacity="1"; home.style.transform="scale(1)";
-  app.style.transition="none";
-  app.style.transformOrigin=(CFG.ix||50)+"% "+(CFG.iy||50)+"%";
-  app.style.transform="scale(.16)";
-  app.style.opacity="0";
-  app.style.borderRadius="22%";
-  atHome=true;
-}
-function openApp(){
-  if(!atHome) return;
-  atHome=false;
-  // Home skaliert leicht weg, App zoomt aus dem Icon auf
-  home.style.transition="transform .34s cubic-bezier(.32,.72,.3,1), opacity .26s ease-out";
-  home.style.transform="scale(1.14)"; home.style.opacity="0";
-  app.style.transition="transform .40s cubic-bezier(.22,.68,.28,1), opacity .18s ease-out, border-radius .34s ease-out";
-  app.style.transform="scale(1)"; app.style.opacity="1"; app.style.borderRadius="0";
-  setTimeout(function(){ home.classList.remove("on"); },430);
-}
-function clearAnim(){
-  atHome=false;
-  home.classList.remove("on");
-  app.style.transition="none"; app.style.transform="none";
-  app.style.opacity="1"; app.style.borderRadius="0";
-}
-home.addEventListener("touchstart",function(e){ if(e.touches.length>1) multiTouch=true; },{passive:true});
-home.addEventListener("touchend",function(e){
-  if(calibOn) return;
-  if(multiTouch){ if(e.touches.length===0) multiTouch=false; return; }
-  openApp();
-},{passive:true});
-home.addEventListener("click",function(){ if(!calibOn&&atHome) openApp(); });
 
 /* ---------- Eingabe ---------- */
 function bind(el,fn){
@@ -587,7 +694,12 @@ var MAP=[
   ["l_h","l","h",1],["l_x","l","x",1],["l_y","l","y",1],["l_col","l","col",0],
   ["b_d","b","d",1],["b_size","b","size",1],["bl_x","b","lx",1],["br_x","b","rx",1],["b_y","b","y",1],
   ["m_force",null,"force",0],["m_chrome",null,"chrome",0],["m_mask",null,"mask",0],["m_fit",null,"fit",0],
-  ["m_shift",null,"shift",0],["m_area",null,"area",0],["m_ix",null,"ix",1],["m_iy",null,"iy",1]
+  ["m_shift",null,"shift",0],["m_area",null,"area",0],
+  ["m_view",null,"view",0],["tb_y","tb","y",1],["tb_h","tb","h",1],
+  ["tm_on","tm","on",0],["tm_min","tm","min",0],["tm_sek","tm","sek",0],["tm_csize","tm","csize",1],
+  ["tm_cwidth","tm","cwidth",1],["tm_cweight","tm","cweight",0],["tm_cx","tm","cx",1],
+  ["tm_cy","tm","cy",1],["tm_rx","tm","rx",1],["tm_ry","tm","ry",1],["tm_rd","tm","rd",1],
+  ["tm_rw","tm","rw",1],["tm_by","tm","by",1]
 ];
 function getv(g,k){ return g?CFG[g][k]:CFG[k]; }
 function setv(g,k,v){ if(g) CFG[g][k]=v; else CFG[k]=v; }
@@ -595,7 +707,9 @@ function label(id,v){
   if(id==="m_force"||id==="m_chrome"||id==="m_mask"||id==="l_on"||id==="l_col") return v?"an":"aus";
   if(id==="m_fit") return v?"füllen":"passen";
   if(id==="m_shift") return (v>0?"+":"")+v+" px";
+  if(id==="tm_on") return v?"an":"aus";
   if(id==="m_area") return ["auto","Fenster","Schirm"][v];
+  if(id==="m_view") return ["Weltuhr","Wecker","Stoppuhr","Timer","Timer läuft","Timer pausiert"][v];
   return (Math.round(v*10)/10)+"";
 }
 MAP.forEach(function(m){
@@ -604,6 +718,8 @@ MAP.forEach(function(m){
     var v=m[3]?parseFloat(el.value):parseInt(el.value,10);
     setv(m[1],m[2],v); out.textContent=label(m[0],v);
     if(m[0]==="m_shift"||m[0]==="m_area") fitStage();
+    if(m[0]==="m_view"){ var V=VIEWS[v]; if(V.ts!==undefined){ tState=V.ts; bgKey=null; } setTab(V.t); }
+    if(m[0].indexOf("tm_")===0){ layoutTimer(); bgKey=null; setBgFor(curTab); paintTimer(); }
     applyLayout();
     if(m[0]==="l_on") buildCalib(); else positionBoxes();
     save();
@@ -625,13 +741,16 @@ document.querySelectorAll(".tabs button").forEach(function(b){
   });
 });
 document.getElementById("done").addEventListener("click",function(){ setCalib(false); });
-document.getElementById("clearBg").addEventListener("click",function(){ CFG.bg=null; applyLayout(); save(); });
+document.getElementById("clearBg").addEventListener("click",function(){
+  CFG[VIEWS[CFG.view].k]=null; bgKey=null;
+  setTab(VIEWS[CFG.view].t); applyLayout(); save();
+});
 document.getElementById("reset").addEventListener("click",function(){
   var bg=CFG.bg; CFG=JSON.parse(JSON.stringify(DEF)); CFG.bg=bg;
   applyLayout(); syncInputs(); buildCalib(); save();
 });
 document.getElementById("code").addEventListener("click",function(){
-  var c=JSON.parse(JSON.stringify(CFG)); delete c.bg;
+  var c=JSON.parse(JSON.stringify(CFG)); delete c.bg; delete c.bg1; delete c.bg2; delete c.bg3; delete c.bg3r; delete c.bg3p;
   var inp=window.prompt("Einstellungen sichern oder einfügen:",JSON.stringify(c));
   if(inp){
     try{
@@ -641,22 +760,12 @@ document.getElementById("code").addEventListener("click",function(){
     }catch(e){ window.alert("Code nicht lesbar."); }
   }
 });
-document.getElementById("fileHome").addEventListener("change",function(e){
-  var f=e.target.files&&e.target.files[0]; if(!f) return;
-  var r=new FileReader();
-  r.onload=function(){ CFG.home=r.result; save(); window.alert("Home-Bildschirm gespeichert."); };
-  r.readAsDataURL(f);
-});
-document.getElementById("showHome").addEventListener("click",function(){
-  if(!CFG.home){ window.alert("Erst einen Homescreen-Screenshot laden."); return; }
-  setCalib(false); showHome();
-});
 document.getElementById("file").addEventListener("change",function(e){
   var f=e.target.files&&e.target.files[0]; if(!f) return;
   var r=new FileReader();
   r.onload=function(){
-    CFG.bg=r.result; CFG.chrome=0; bgEl.removeAttribute("data-set");
-    applyLayout(); syncInputs(); save();
+    CFG[VIEWS[CFG.view].k]=r.result; CFG.chrome=0; bgKey=null;
+    setTab(VIEWS[CFG.view].t); applyLayout(); syncInputs(); save();
   };
   r.readAsDataURL(f);
 });
@@ -666,8 +775,10 @@ window.addEventListener("resize",function(){ fitStage(); applyLayout(); position
 window.addEventListener("orientationchange",function(){ setTimeout(function(){ fitStage(); applyLayout(); },300); });
 buildTabs();
 fitStage();
+CFG.view=2;
+tState=0;
+setTab(2);
 applyLayout();
-if(CFG.home) showHome(); else clearAnim();
 requestAnimationFrame(frame);
 })();
 </script>
