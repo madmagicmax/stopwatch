@@ -87,6 +87,22 @@
     max-height:64vh;overflow-y:auto;font-size:12px;touch-action:auto;}
   #panel.on{display:block;}
   #panel h3{margin:0 0 8px;font-size:13px;font-weight:600;}
+  .pnav{display:flex;gap:5px;margin-bottom:6px;}
+  .pnav button{flex:1;min-width:52px;background:#2c2c2e;color:#fff;border:none;padding:9px 2px;
+    border-radius:9px;font-size:11px;}
+  .pnav button.sel{background:#0a84ff;}
+  .grp{font-size:10px;color:#636366;text-transform:uppercase;letter-spacing:.5px;margin:13px 0 3px;}
+  .ctl{display:flex;align-items:center;gap:8px;margin:6px 0;}
+  .ctl .lb{flex:1;color:#d1d1d6;font-size:12px;}
+  .st{display:flex;align-items:center;background:#2c2c2e;border-radius:9px;overflow:hidden;}
+  .st button{width:40px;height:34px;background:none;border:none;color:#0a84ff;font-size:18px;line-height:1;}
+  .st span{min-width:58px;text-align:center;font-size:12px;font-variant-numeric:tabular-nums;color:#fff;}
+  .tg{min-width:78px;height:34px;border-radius:9px;border:none;background:#2c2c2e;color:#8e8e93;font-size:12px;}
+  .tg.on{background:#30d158;color:#04290f;}
+  .prow{display:flex;gap:6px;margin:8px 0;flex-wrap:wrap;}
+  .pbtn{flex:1;min-width:88px;background:#2c2c2e;color:#fff;border:none;padding:11px 6px;border-radius:9px;font-size:11px;}
+  .pbtn.warn{background:#5a1f1f;} .pbtn.sel{background:#0a84ff;}
+  .pfoot{margin-top:14px;} .pfoot button{width:100%;background:#0a84ff;color:#fff;border:none;padding:12px;border-radius:10px;font-size:13px;}
   .tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;}
   .tabs button{flex:1;min-width:64px;background:#2c2c2e;color:#fff;border:none;padding:7px 4px;
     border-radius:8px;font-size:11px;}
@@ -128,74 +144,10 @@
 <div id="calib"></div>
 
 <div id="panel">
-  <h3>Kalibrierung</h3>
-  <div class="row" style="margin:0 0 10px"><label>Ansicht</label><input type="range" id="m_view" min="0" max="5" step="1"><span class="val" id="m_view_v" style="width:96px"></span></div>
-  <div class="tabs">
-    <button data-sect="s-time" class="sel">Zeit</button>
-    <button data-sect="s-laps">Runden</button>
-    <button data-sect="s-btn">Tasten</button>
-    <button data-sect="s-timer">Timer</button>
-    <button data-sect="s-misc">Allgemein</button>
-  </div>
-  <div class="sect on" id="s-time">
-    <div class="row"><label>Größe</label><input type="range" id="t_size" min="10" max="32" step="0.1"><span class="val" id="t_size_v"></span></div>
-    <div class="row"><label>Stärke</label><input type="range" id="t_weight" min="100" max="500" step="50"><span class="val" id="t_weight_v"></span></div>
-    <div class="row"><label>Laufweite</label><input type="range" id="t_track" min="-8" max="8" step="0.1"><span class="val" id="t_track_v"></span></div>
-    <div class="row"><label>X</label><input type="range" id="t_x" min="0" max="100" step="0.1"><span class="val" id="t_x_v"></span></div>
-    <div class="row"><label>Y</label><input type="range" id="t_y" min="0" max="100" step="0.1"><span class="val" id="t_y_v"></span></div>
-  </div>
-  <div class="sect" id="s-laps">
-    <div class="row"><label>Anzeigen</label><input type="range" id="l_on" min="0" max="1" step="1"><span class="val" id="l_on_v"></span></div>
-    <div class="row"><label>Schrift</label><input type="range" id="l_size" min="10" max="26" step="0.5"><span class="val" id="l_size_v"></span></div>
-    <div class="row"><label>Zeilenhöhe</label><input type="range" id="l_rowh" min="5" max="18" step="0.1"><span class="val" id="l_rowh_v"></span></div>
-    <div class="row"><label>Breite</label><input type="range" id="l_w" min="40" max="100" step="0.5"><span class="val" id="l_w_v"></span></div>
-    <div class="row"><label>Höhe</label><input type="range" id="l_h" min="10" max="60" step="0.5"><span class="val" id="l_h_v"></span></div>
-    <div class="row"><label>X</label><input type="range" id="l_x" min="0" max="100" step="0.1"><span class="val" id="l_x_v"></span></div>
-    <div class="row"><label>Oben</label><input type="range" id="l_y" min="0" max="100" step="0.1"><span class="val" id="l_y_v"></span></div>
-    <div class="row"><label>Grün/Rot</label><input type="range" id="l_col" min="0" max="1" step="1"><span class="val" id="l_col_v"></span></div>
-  </div>
-  <div class="sect" id="s-timer">
-    <div class="row"><label>Timer aktiv</label><input type="range" id="tm_on" min="0" max="1" step="1"><span class="val" id="tm_on_v"></span></div>
-    <div class="row"><label>Dauer Min</label><input type="range" id="tm_min" min="0" max="59" step="1"><span class="val" id="tm_min_v"></span></div>
-    <div class="row"><label>Dauer Sek</label><input type="range" id="tm_sek" min="0" max="59" step="1"><span class="val" id="tm_sek_v"></span></div>
-    <div class="row"><label>Zahl Größe</label><input type="range" id="tm_csize" min="8" max="40" step="0.2"><span class="val" id="tm_csize_v"></span></div>
-    <div class="row"><label>Zahl Breite</label><input type="range" id="tm_cwidth" min="0.3" max="1.3" step="0.01"><span class="val" id="tm_cwidth_v"></span></div>
-    <div class="row"><label>Zahl Stärke</label><input type="range" id="tm_cweight" min="100" max="500" step="50"><span class="val" id="tm_cweight_v"></span></div>
-    <div class="row"><label>Zahl X</label><input type="range" id="tm_cx" min="0" max="100" step="0.1"><span class="val" id="tm_cx_v"></span></div>
-    <div class="row"><label>Zahl Y</label><input type="range" id="tm_cy" min="0" max="100" step="0.1"><span class="val" id="tm_cy_v"></span></div>
-    <div class="row"><label>Ring X</label><input type="range" id="tm_rx" min="0" max="100" step="0.1"><span class="val" id="tm_rx_v"></span></div>
-    <div class="row"><label>Ring Y</label><input type="range" id="tm_ry" min="0" max="100" step="0.1"><span class="val" id="tm_ry_v"></span></div>
-    <div class="row"><label>Ring Größe</label><input type="range" id="tm_rd" min="6" max="30" step="0.1"><span class="val" id="tm_rd_v"></span></div>
-    <div class="row"><label>Ring Stärke</label><input type="range" id="tm_rw" min="0.3" max="3" step="0.05"><span class="val" id="tm_rw_v"></span></div>
-    <div class="row"><label>Tasten Y</label><input type="range" id="tm_by" min="30" max="90" step="0.1"><span class="val" id="tm_by_v"></span></div>
-  </div>
-
-  <div class="sect" id="s-btn">
-    <div class="row"><label>Durchmesser</label><input type="range" id="b_d" min="10" max="35" step="0.1"><span class="val" id="b_d_v"></span></div>
-    <div class="row"><label>Schrift</label><input type="range" id="b_size" min="10" max="26" step="0.5"><span class="val" id="b_size_v"></span></div>
-    <div class="row"><label>Links X</label><input type="range" id="bl_x" min="0" max="100" step="0.1"><span class="val" id="bl_x_v"></span></div>
-    <div class="row"><label>Rechts X</label><input type="range" id="br_x" min="0" max="100" step="0.1"><span class="val" id="br_x_v"></span></div>
-    <div class="row"><label>Y</label><input type="range" id="b_y" min="0" max="100" step="0.1"><span class="val" id="b_y_v"></span></div>
-  </div>
-  <div class="sect" id="s-misc">
-    <div class="row"><label>Force aktiv</label><input type="range" id="m_force" min="0" max="1" step="1"><span class="val" id="m_force_v"></span></div>
-    <div class="row"><label>iOS-Rahmen</label><input type="range" id="m_chrome" min="0" max="1" step="1"><span class="val" id="m_chrome_v"></span></div>
-    <div class="row"><label>Statusleiste</label><input type="range" id="m_mask" min="0" max="1" step="1"><span class="val" id="m_mask_v"></span></div>
-    <div class="row"><label>Bild-Fit</label><input type="range" id="m_fit" min="0" max="1" step="1"><span class="val" id="m_fit_v"></span></div>
-    <div class="row"><label>Leiste Y</label><input type="range" id="tb_y" min="80" max="100" step="0.1"><span class="val" id="tb_y_v"></span></div>
-    <div class="row"><label>Leiste H</label><input type="range" id="tb_h" min="8" max="24" step="0.1"><span class="val" id="tb_h_v"></span></div>
-    <div class="row"><label>Fläche</label><input type="range" id="m_area" min="0" max="2" step="1"><span class="val" id="m_area_v"></span></div>
-    <div class="row"><label>Versatz</label><input type="range" id="m_shift" min="-80" max="80" step="1"><span class="val" id="m_shift_v"></span></div>
-    <div id="diag" style="margin-top:10px;color:#98989d;font-size:10px;line-height:1.5;word-break:break-word"></div>
-  </div>
-  <div class="acts">
-    <label for="file" id="fileLabel">Bild laden</label>
-    <input type="file" id="file" accept="image/*" style="display:none">
-    <button id="clearBg">Bild weg</button>
-    <button id="code">Code</button>
-    <button id="reset" class="warn">Standard</button>
-    <button id="done" class="ok">Fertig</button>
-  </div>
+  <div class="pnav" id="pnav"></div>
+  <div id="pbody"></div>
+  <input type="file" id="file" accept="image/*" style="display:none">
+  <div class="pfoot"><button id="done" class="ok">Fertig</button></div>
 </div>
 
 <script>
@@ -691,90 +643,207 @@ window.addEventListener("keydown",function(e){
 });
 
 /* ---------- Panel ---------- */
-var MAP=[
-  ["t_size","t","size",1],["t_weight","t","weight",0],["t_track","t","track",1],
-  ["t_x","t","x",1],["t_y","t","y",1],
-  ["l_on","l","on",0],["l_size","l","size",1],["l_rowh","l","rowh",1],["l_w","l","w",1],
-  ["l_h","l","h",1],["l_x","l","x",1],["l_y","l","y",1],["l_col","l","col",0],
-  ["b_d","b","d",1],["b_size","b","size",1],["bl_x","b","lx",1],["br_x","b","rx",1],["b_y","b","y",1],
-  ["m_force",null,"force",0],["m_chrome",null,"chrome",0],["m_mask",null,"mask",0],["m_fit",null,"fit",0],
-  ["m_shift",null,"shift",0],["m_area",null,"area",0],
-  ["m_view",null,"view",0],["tb_y","tb","y",1],["tb_h","tb","h",1],
-  ["tm_on","tm","on",0],["tm_min","tm","min",0],["tm_sek","tm","sek",0],["tm_csize","tm","csize",1],
-  ["tm_cwidth","tm","cwidth",1],["tm_cweight","tm","cweight",0],["tm_cx","tm","cx",1],
-  ["tm_cy","tm","cy",1],["tm_rx","tm","rx",1],["tm_ry","tm","ry",1],["tm_rd","tm","rd",1],
-  ["tm_rw","tm","rw",1],["tm_by","tm","by",1]
-];
-function getv(g,k){ return g?CFG[g][k]:CFG[k]; }
-function setv(g,k,v){ if(g) CFG[g][k]=v; else CFG[k]=v; }
-function label(id,v){
-  if(id==="m_force"||id==="m_chrome"||id==="m_mask"||id==="l_on"||id==="l_col") return v?"an":"aus";
-  if(id==="m_fit") return v?"füllen":"passen";
-  if(id==="m_shift") return (v>0?"+":"")+v+" px";
-  if(id==="tm_on") return v?"an":"aus";
-  if(id==="m_area") return ["auto","Fenster","Schirm"][v];
-  if(id==="m_view") return ["Weltuhr","Wecker","Stoppuhr","Timer","Timer läuft","Timer pausiert"][v];
-  return (Math.round(v*10)/10)+"";
+var NAV=[{n:"Weltuhr",v:0},{n:"Wecker",v:1},{n:"Stoppuhr",v:2},{n:"Timer",v:3},{n:"System",v:9}];
+var navSel=2;
+
+function SEC(v){
+  if(v===0||v===1) return [{img:1}];
+  if(v===2) return [{img:1},
+    {g:"Zeit"},
+    {k:["t","size"],l:"Größe",st:0.2,mi:8,ma:34,d:1},
+    {k:["t","weight"],l:"Stärke",st:50,mi:100,ma:500},
+    {k:["t","track"],l:"Laufweite",st:0.2,mi:-8,ma:8,d:1},
+    {k:["t","x"],l:"X",st:0.3,mi:0,ma:100,d:1},
+    {k:["t","y"],l:"Y",st:0.3,mi:0,ma:100,d:1},
+    {g:"Runden"},
+    {k:["l","on"],l:"Anzeigen",b:1},
+    {k:["l","size"],l:"Schrift",st:0.5,mi:10,ma:26,d:1},
+    {k:["l","rowh"],l:"Zeilenhöhe",st:0.2,mi:5,ma:18,d:1},
+    {k:["l","w"],l:"Breite",st:0.5,mi:40,ma:100,d:1},
+    {k:["l","h"],l:"Höhe",st:1,mi:10,ma:60,d:1},
+    {k:["l","y"],l:"Oben",st:0.3,mi:0,ma:100,d:1},
+    {k:["l","col"],l:"Grün/Rot",b:1},
+    {g:"Tasten"},
+    {k:["b","d"],l:"Durchmesser",st:0.2,mi:10,ma:35,d:1},
+    {k:["b","size"],l:"Schrift",st:0.5,mi:10,ma:26,d:1},
+    {k:["b","lx"],l:"Links X",st:0.3,mi:0,ma:100,d:1},
+    {k:["b","rx"],l:"Rechts X",st:0.3,mi:0,ma:100,d:1},
+    {k:["b","y"],l:"Y",st:0.3,mi:0,ma:100,d:1},
+    {g:"Force"},
+    {k:[null,"force"],l:"Force aktiv",b:1}];
+  if(v===3) return [{tslot:1},{img:1},
+    {g:"Verhalten"},
+    {k:["tm","on"],l:"Timer aktiv",b:1},
+    {k:["tm","min"],l:"Dauer Min",st:1,mi:0,ma:59},
+    {k:["tm","sek"],l:"Dauer Sek",st:1,mi:0,ma:59},
+    {g:"Countdown"},
+    {k:["tm","csize"],l:"Größe",st:0.3,mi:8,ma:40,d:1},
+    {k:["tm","cwidth"],l:"Breite",st:0.02,mi:0.3,ma:1.3,d:2},
+    {k:["tm","cweight"],l:"Stärke",st:50,mi:100,ma:500},
+    {k:["tm","cx"],l:"X",st:0.3,mi:0,ma:100,d:1},
+    {k:["tm","cy"],l:"Y",st:0.3,mi:0,ma:100,d:1},
+    {g:"Ring"},
+    {k:["tm","rx"],l:"X",st:0.3,mi:0,ma:100,d:1},
+    {k:["tm","ry"],l:"Y",st:0.3,mi:0,ma:100,d:1},
+    {k:["tm","rd"],l:"Größe",st:0.2,mi:6,ma:30,d:1},
+    {k:["tm","rw"],l:"Stärke",st:0.05,mi:0.3,ma:3,d:2},
+    {k:["tm","by"],l:"Tasten Y",st:0.3,mi:30,ma:90,d:1}];
+  return [
+    {g:"Bildschirm"},
+    {k:[null,"area"],l:"Fläche",ch:["auto","Fenster","Schirm"]},
+    {k:[null,"shift"],l:"Versatz",st:2,mi:-80,ma:80},
+    {k:[null,"fit"],l:"Bild-Fit",ch:["passen","füllen"]},
+    {k:[null,"chrome"],l:"iOS-Rahmen",b:1},
+    {k:[null,"mask"],l:"Statusleiste",b:1},
+    {g:"Tab-Leiste"},
+    {k:["tb","y"],l:"Y",st:0.3,mi:80,ma:100,d:1},
+    {k:["tb","h"],l:"Höhe",st:0.3,mi:8,ma:24,d:1},
+    {g:"Sichern"},
+    {act:"code"},{act:"reset"},
+    {diag:1}];
 }
-MAP.forEach(function(m){
-  var el=document.getElementById(m[0]), out=document.getElementById(m[0]+"_v");
-  el.addEventListener("input",function(){
-    var v=m[3]?parseFloat(el.value):parseInt(el.value,10);
-    setv(m[1],m[2],v); out.textContent=label(m[0],v);
-    if(m[0]==="m_shift"||m[0]==="m_area") fitStage();
-    if(m[0]==="m_view"){ var V=VIEWS[v]; if(V.ts!==undefined){ tState=V.ts; } bgKey=null; setTab(V.t); syncInputs(); }
-    if(m[0].indexOf("tm_")===0){ layoutTimer(); bgKey=null; setBgFor(curTab); paintTimer(); }
-    applyLayout();
-    if(m[0]==="l_on") buildCalib(); else positionBoxes();
-    save();
-  });
-});
-function syncInputs(){
-  var V=VIEWS[CFG.view]||VIEWS[2];
-  var namen=["Weltuhr","Wecker","Stoppuhr","Timer","Timer läuft","Timer pausiert"];
-  var hat=!!CFG[V.k];
-  var lab=document.getElementById("fileLabel");
-  if(lab) lab.textContent=(hat?"Bild ersetzen: ":"Bild laden: ")+namen[CFG.view];
-  var dg=document.getElementById("diag");
-  if(dg) dg.textContent=DIAG+" · Speicher "+Math.round(cfgBytes()/1024)+" kB";
-  MAP.forEach(function(m){
-    var v=getv(m[1],m[2]);
-    document.getElementById(m[0]).value=v;
-    document.getElementById(m[0]+"_v").textContent=label(m[0],v);
-  });
+function gv(k){ return k[0]?CFG[k[0]][k[1]]:CFG[k[1]]; }
+function sv(k,v){ if(k[0]) CFG[k[0]][k[1]]=v; else CFG[k[1]]=v; }
+function after(k){
+  if(k[1]==="shift"||k[1]==="area") fitStage();
+  if(k[0]==="tm"){ bgKey=null; setBgFor(curTab); layoutTimer(); paintTimer(); }
+  applyLayout();
+  if(k[0]==="l"&&k[1]==="on") buildCalib(); else positionBoxes();
+  save();
 }
-document.querySelectorAll(".tabs button").forEach(function(b){
-  b.addEventListener("click",function(){
-    document.querySelectorAll(".tabs button").forEach(function(x){x.classList.remove("sel");});
-    document.querySelectorAll(".sect").forEach(function(x){x.classList.remove("on");});
-    b.classList.add("sel");
-    document.getElementById(b.dataset.sect).classList.add("on");
-  });
-});
-document.getElementById("done").addEventListener("click",function(){ setCalib(false); });
-document.getElementById("clearBg").addEventListener("click",function(){
-  CFG[VIEWS[CFG.view].k]=null; bgKey=null;
-  setTab(VIEWS[CFG.view].t); applyLayout(); syncInputs(); save();
-});
-document.getElementById("reset").addEventListener("click",function(){
-  var bg=CFG.bg; CFG=JSON.parse(JSON.stringify(DEF)); CFG.bg=bg;
-  applyLayout(); syncInputs(); buildCalib(); save();
-});
-document.getElementById("code").addEventListener("click",function(){
-  var c=JSON.parse(JSON.stringify(CFG)); delete c.bg; delete c.bg1; delete c.bg2; delete c.bg3; delete c.bg3r; delete c.bg3p;
-  var inp=window.prompt("Einstellungen sichern oder einfügen:",JSON.stringify(c));
-  if(inp){
-    try{
-      var o=JSON.parse(inp), bg=CFG.bg;
-      CFG=merge(o); CFG.bg=bg;
-      applyLayout(); syncInputs(); buildCalib(); save();
-    }catch(e){ window.alert("Code nicht lesbar."); }
+function fmtv(c,v){
+  if(c.b) return v?"an":"aus";
+  if(c.ch) return c.ch[v];
+  return c.d?(Math.round(v*Math.pow(10,c.d))/Math.pow(10,c.d)).toFixed(c.d):String(v);
+}
+function ctlRow(c){
+  var row=document.createElement("div"); row.className="ctl";
+  var lb=document.createElement("div"); lb.className="lb"; lb.textContent=c.l; row.appendChild(lb);
+  if(c.b||c.ch){
+    var t=document.createElement("button"); t.className="tg";
+    var upd=function(){ var v=gv(c.k); t.textContent=fmtv(c,v); t.classList.toggle("on",!!v); };
+    upd();
+    t.addEventListener("click",function(){
+      var v=gv(c.k), n=c.ch?((v+1)%c.ch.length):(v?0:1);
+      sv(c.k,n); upd(); after(c.k);
+    });
+    row.appendChild(t);
+  } else {
+    var box=document.createElement("div"); box.className="st";
+    var minus=document.createElement("button"); minus.textContent="−";
+    var val=document.createElement("span");
+    var plus=document.createElement("button"); plus.textContent="+";
+    var upd=function(){ val.textContent=fmtv(c,gv(c.k)); };
+    upd();
+    var step=function(dir){
+      var v=gv(c.k)+dir*c.st;
+      v=Math.max(c.mi,Math.min(c.ma,Math.round(v*1000)/1000));
+      sv(c.k,v); upd(); after(c.k);
+    };
+    [[minus,-1],[plus,1]].forEach(function(pr){
+      var timer=null, fast=null;
+      pr[0].addEventListener("pointerdown",function(e){
+        e.preventDefault(); step(pr[1]);
+        timer=setTimeout(function(){ fast=setInterval(function(){ step(pr[1]); },70); },420);
+      },{passive:false});
+      ["pointerup","pointercancel","pointerleave"].forEach(function(ev){
+        pr[0].addEventListener(ev,function(){ clearTimeout(timer); clearInterval(fast); });
+      });
+    });
+    box.appendChild(minus); box.appendChild(val); box.appendChild(plus);
+    row.appendChild(box);
   }
-});
+  return row;
+}
+function imgRow(){
+  var wrap=document.createElement("div"); wrap.className="prow";
+  var V=VIEWS[CFG.view], namen=["Weltuhr","Wecker","Stoppuhr","Timer Ruhe","Timer läuft","Timer pausiert"];
+  var load=document.createElement("button"); load.className="pbtn";
+  load.textContent=(CFG[V.k]?"Bild ersetzen":"Bild laden")+": "+namen[CFG.view];
+  load.addEventListener("click",function(){ document.getElementById("file").click(); });
+  var del=document.createElement("button"); del.className="pbtn warn"; del.textContent="Bild weg";
+  del.addEventListener("click",function(){
+    CFG[VIEWS[CFG.view].k]=null; bgKey=null;
+    setTab(VIEWS[CFG.view].t); applyLayout(); save(); syncInputs();
+  });
+  wrap.appendChild(load); wrap.appendChild(del);
+  return wrap;
+}
+function tslotRow(){
+  var wrap=document.createElement("div"); wrap.className="prow";
+  [["Ruhe",3],["läuft",4],["pausiert",5]].forEach(function(pr){
+    var b=document.createElement("button");
+    b.className="pbtn"+(CFG.view===pr[1]?" sel":"");
+    b.textContent=pr[0];
+    b.addEventListener("click",function(){
+      CFG.view=pr[1]; tState=VIEWS[pr[1]].ts; bgKey=null;
+      setTab(3); syncInputs(); save();
+    });
+    wrap.appendChild(b);
+  });
+  return wrap;
+}
+function syncInputs(){
+  var nav=document.getElementById("pnav"), body=document.getElementById("pbody");
+  if(!nav||!body) return;
+  nav.innerHTML="";
+  NAV.forEach(function(it,i){
+    var b=document.createElement("button");
+    b.textContent=it.n; b.className=(i===navSel?"sel":"");
+    b.addEventListener("click",function(){
+      navSel=i;
+      if(it.v!==9){
+        CFG.view=(it.v===3?3:it.v);
+        if(VIEWS[CFG.view].ts!==undefined) tState=VIEWS[CFG.view].ts;
+        bgKey=null; setTab(VIEWS[CFG.view].t);
+      }
+      syncInputs(); save();
+    });
+    nav.appendChild(b);
+  });
+  body.innerHTML="";
+  SEC(NAV[navSel].v).forEach(function(c){
+    if(c.g){ var h=document.createElement("div"); h.className="grp"; h.textContent=c.g; body.appendChild(h); return; }
+    if(c.img){ body.appendChild(imgRow()); return; }
+    if(c.tslot){ body.appendChild(tslotRow()); return; }
+    if(c.diag){ var d=document.createElement("div"); d.id="diag";
+      d.style.cssText="margin-top:10px;color:#98989d;font-size:10px;line-height:1.5;word-break:break-word";
+      d.textContent=DIAG+" · Speicher "+Math.round(cfgBytes()/1024)+" kB"; body.appendChild(d); return; }
+    if(c.act){
+      var w=document.createElement("div"); w.className="prow";
+      var b=document.createElement("button"); w.appendChild(b);
+      if(c.act==="code"){ b.className="pbtn"; b.textContent="Einstellungen sichern";
+        b.addEventListener("click",function(){
+          var cc=JSON.parse(JSON.stringify(CFG));
+          delete cc.bg; delete cc.bg1; delete cc.bg2; delete cc.bg3; delete cc.bg3r; delete cc.bg3p;
+          var inp=window.prompt("Sichern oder einfügen:",JSON.stringify(cc));
+          if(inp){ try{ var o=JSON.parse(inp), keep={};
+            ["bg","bg1","bg2","bg3","bg3r","bg3p"].forEach(function(k){ keep[k]=CFG[k]; });
+            CFG=merge(o);
+            ["bg","bg1","bg2","bg3","bg3r","bg3p"].forEach(function(k){ CFG[k]=keep[k]; });
+            fitStage(); applyLayout(); buildCalib(); syncInputs(); save();
+          }catch(e){ window.alert("Code nicht lesbar."); } }
+        });
+      } else { b.className="pbtn warn"; b.textContent="Auf Standard zurück";
+        b.addEventListener("click",function(){
+          if(!window.confirm("Alle Werte zurücksetzen? Bilder bleiben.")) return;
+          var keep={}; ["bg","bg1","bg2","bg3","bg3r","bg3p"].forEach(function(k){ keep[k]=CFG[k]; });
+          CFG=JSON.parse(JSON.stringify(DEF));
+          ["bg","bg1","bg2","bg3","bg3r","bg3p"].forEach(function(k){ CFG[k]=keep[k]; });
+          fitStage(); applyLayout(); buildCalib(); syncInputs(); save();
+        });
+      }
+      body.appendChild(w); return;
+    }
+    body.appendChild(ctlRow(c));
+  });
+}
+document.getElementById("done").addEventListener("click",function(){ setCalib(false); });
+
 function shrink(dataUrl,cb){
   var im=new Image();
   im.onload=function(){
-    var tw=Math.min(im.width, Math.round(window.innerWidth*3)); // Geraeteaufloesung
+    var tw=Math.min(im.width, Math.round(window.innerWidth*3));
     var th=Math.round(im.height*tw/im.width);
     var cv=document.createElement("canvas"); cv.width=tw; cv.height=th;
     cv.getContext("2d").drawImage(im,0,0,tw,th);
@@ -797,11 +866,9 @@ document.getElementById("file").addEventListener("change",function(e){
       CFG[key]=small; CFG.chrome=0; bgKey=null;
       if(!save()){
         CFG[key]=before; bgKey=null;
-        window.alert("Speicher voll. Lösch ein anderes Bild ('Bild weg') und versuch es nochmal.");
+        window.alert("Speicher voll. Lösch ein anderes Bild und versuch es nochmal.");
       }
-      var V=VIEWS[CFG.view];
-      if(V.ts!==undefined) tState=V.ts;
-      setTab(V.t); applyLayout(); syncInputs();
+      setTab(VIEWS[CFG.view].t); applyLayout(); syncInputs();
     });
   };
   r.readAsDataURL(f);
