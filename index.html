@@ -129,6 +129,7 @@
 
 <div id="panel">
   <h3>Kalibrierung</h3>
+  <div class="row" style="margin:0 0 10px"><label>Ansicht</label><input type="range" id="m_view" min="0" max="5" step="1"><span class="val" id="m_view_v" style="width:96px"></span></div>
   <div class="tabs">
     <button data-sect="s-time" class="sel">Zeit</button>
     <button data-sect="s-laps">Runden</button>
@@ -181,7 +182,6 @@
     <div class="row"><label>iOS-Rahmen</label><input type="range" id="m_chrome" min="0" max="1" step="1"><span class="val" id="m_chrome_v"></span></div>
     <div class="row"><label>Statusleiste</label><input type="range" id="m_mask" min="0" max="1" step="1"><span class="val" id="m_mask_v"></span></div>
     <div class="row"><label>Bild-Fit</label><input type="range" id="m_fit" min="0" max="1" step="1"><span class="val" id="m_fit_v"></span></div>
-    <div class="row"><label>Ansicht</label><input type="range" id="m_view" min="0" max="5" step="1"><span class="val" id="m_view_v"></span></div>
     <div class="row"><label>Leiste Y</label><input type="range" id="tb_y" min="80" max="100" step="0.1"><span class="val" id="tb_y_v"></span></div>
     <div class="row"><label>Leiste H</label><input type="range" id="tb_h" min="8" max="24" step="0.1"><span class="val" id="tb_h_v"></span></div>
     <div class="row"><label>Fläche</label><input type="range" id="m_area" min="0" max="2" step="1"><span class="val" id="m_area_v"></span></div>
@@ -189,7 +189,7 @@
     <div id="diag" style="margin-top:10px;color:#98989d;font-size:10px;line-height:1.5;word-break:break-word"></div>
   </div>
   <div class="acts">
-    <label for="file">Screenshot</label>
+    <label for="file" id="fileLabel">Bild laden</label>
     <input type="file" id="file" accept="image/*" style="display:none">
     <button id="clearBg">Bild weg</button>
     <button id="code">Code</button>
@@ -297,7 +297,11 @@ function merge(o){
   }
   return d;
 }
-function save(){ try{ localStorage.setItem("uhr.cfg.v2", JSON.stringify(CFG)); }catch(e){} }
+function save(){
+  try{ localStorage.setItem("uhr.cfg.v2", JSON.stringify(CFG)); return true; }
+  catch(e){ return false; }
+}
+function cfgBytes(){ try{ return JSON.stringify(CFG).length; }catch(e){ return 0; } }
 
 /* ---------- Elemente ---------- */
 var stage=document.getElementById("stage"), bgEl=document.getElementById("bg"),
@@ -718,7 +722,7 @@ MAP.forEach(function(m){
     var v=m[3]?parseFloat(el.value):parseInt(el.value,10);
     setv(m[1],m[2],v); out.textContent=label(m[0],v);
     if(m[0]==="m_shift"||m[0]==="m_area") fitStage();
-    if(m[0]==="m_view"){ var V=VIEWS[v]; if(V.ts!==undefined){ tState=V.ts; bgKey=null; } setTab(V.t); }
+    if(m[0]==="m_view"){ var V=VIEWS[v]; if(V.ts!==undefined){ tState=V.ts; } bgKey=null; setTab(V.t); syncInputs(); }
     if(m[0].indexOf("tm_")===0){ layoutTimer(); bgKey=null; setBgFor(curTab); paintTimer(); }
     applyLayout();
     if(m[0]==="l_on") buildCalib(); else positionBoxes();
@@ -726,6 +730,13 @@ MAP.forEach(function(m){
   });
 });
 function syncInputs(){
+  var V=VIEWS[CFG.view]||VIEWS[2];
+  var namen=["Weltuhr","Wecker","Stoppuhr","Timer","Timer läuft","Timer pausiert"];
+  var hat=!!CFG[V.k];
+  var lab=document.getElementById("fileLabel");
+  if(lab) lab.textContent=(hat?"Bild ersetzen: ":"Bild laden: ")+namen[CFG.view];
+  var dg=document.getElementById("diag");
+  if(dg) dg.textContent=DIAG+" · Speicher "+Math.round(cfgBytes()/1024)+" kB";
   MAP.forEach(function(m){
     var v=getv(m[1],m[2]);
     document.getElementById(m[0]).value=v;
@@ -743,7 +754,7 @@ document.querySelectorAll(".tabs button").forEach(function(b){
 document.getElementById("done").addEventListener("click",function(){ setCalib(false); });
 document.getElementById("clearBg").addEventListener("click",function(){
   CFG[VIEWS[CFG.view].k]=null; bgKey=null;
-  setTab(VIEWS[CFG.view].t); applyLayout(); save();
+  setTab(VIEWS[CFG.view].t); applyLayout(); syncInputs(); save();
 });
 document.getElementById("reset").addEventListener("click",function(){
   var bg=CFG.bg; CFG=JSON.parse(JSON.stringify(DEF)); CFG.bg=bg;
@@ -760,14 +771,41 @@ document.getElementById("code").addEventListener("click",function(){
     }catch(e){ window.alert("Code nicht lesbar."); }
   }
 });
+function shrink(dataUrl,cb){
+  var im=new Image();
+  im.onload=function(){
+    var tw=Math.min(im.width, Math.round(window.innerWidth*3)); // Geraeteaufloesung
+    var th=Math.round(im.height*tw/im.width);
+    var cv=document.createElement("canvas"); cv.width=tw; cv.height=th;
+    cv.getContext("2d").drawImage(im,0,0,tw,th);
+    var out=null;
+    try{ out=cv.toDataURL("image/webp",0.86); }catch(e){}
+    if(!out||out.indexOf("data:image/webp")!==0){
+      try{ out=cv.toDataURL("image/jpeg",0.9); }catch(e){ out=dataUrl; }
+    }
+    cb(out.length<dataUrl.length?out:dataUrl);
+  };
+  im.onerror=function(){ cb(dataUrl); };
+  im.src=dataUrl;
+}
 document.getElementById("file").addEventListener("change",function(e){
   var f=e.target.files&&e.target.files[0]; if(!f) return;
   var r=new FileReader();
   r.onload=function(){
-    CFG[VIEWS[CFG.view].k]=r.result; CFG.chrome=0; bgKey=null;
-    setTab(VIEWS[CFG.view].t); applyLayout(); syncInputs(); save();
+    shrink(r.result,function(small){
+      var key=VIEWS[CFG.view].k, before=CFG[key];
+      CFG[key]=small; CFG.chrome=0; bgKey=null;
+      if(!save()){
+        CFG[key]=before; bgKey=null;
+        window.alert("Speicher voll. Lösch ein anderes Bild ('Bild weg') und versuch es nochmal.");
+      }
+      var V=VIEWS[CFG.view];
+      if(V.ts!==undefined) tState=V.ts;
+      setTab(V.t); applyLayout(); syncInputs();
+    });
   };
   r.readAsDataURL(f);
+  e.target.value="";
 });
 
 /* ---------- Start ---------- */
