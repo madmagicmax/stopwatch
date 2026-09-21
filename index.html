@@ -141,6 +141,7 @@
   </div>
 </div>
 
+<video id="wakeVid" muted playsinline loop preload="auto" style="position:fixed;left:0;top:0;width:1px;height:1px;opacity:0;pointer-events:none" src="data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAMrbW9vdgAAAGxtdmhkAAAAAAAAAAAAAAAAAAAD6AAAB9AAAQAAAQAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAlV0cmFrAAAAXHRraGQAAAADAAAAAAAAAAAAAAABAAAAAAAAB9AAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAABAAAAAQAAAAAAAkZWR0cwAAABxlbHN0AAAAAAAAAAEAAAfQAAAAAAABAAAAAAHNbWRpYQAAACBtZGhkAAAAAAAAAAAAAAAAAABAAAAAgABVxAAAAAAALWhkbHIAAAAAAAAAAHZpZGUAAAAAAAAAAAAAAABWaWRlb0hhbmRsZXIAAAABeG1pbmYAAAAUdm1oZAAAAAEAAAAAAAAAAAAAACRkaW5mAAAAHGRyZWYAAAAAAAAAAQAAAAx1cmwgAAAAAQAAAThzdGJsAAAAuHN0c2QAAAAAAAAAAQAAAKhhdmMxAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAABAAEABIAAAASAAAAAAAAAABFUxhdmM2MC4zMS4xMDIgbGlieDI2NAAAAAAAAAAAAAAAGP//AAAALmF2Y0MBQsAe/+EAFmdCwB7ZHsBEAAADAAQAAAMACDxYuSABAAVoy4PLIAAAABBwYXNwAAAAAQAAAAEAAAAUYnRydAAAAAAAAApAAAAKQAAAABhzdHRzAAAAAAAAAAEAAAACAABAAAAAABRzdHNzAAAAAAAAAAEAAAABAAAAHHN0c2MAAAAAAAAAAQAAAAEAAAACAAAAAQAAABxzdHN6AAAAAAAAAAAAAAACAAAChgAAAAoAAAAUc3RjbwAAAAAAAAABAAADWwAAAGJ1ZHRhAAAAWm1ldGEAAAAAAAAAIWhkbHIAAAAAAAAAAG1kaXJhcHBsAAAAAAAAAAAAAAAALWlsc3QAAAAlqXRvbwAAAB1kYXRhAAAAAQAAAABMYXZmNjAuMTYuMTAwAAAACGZyZWUAAAKYbWRhdAAAAnAGBf//bNxF6b3m2Ui3lizYINkj7u94MjY0IC0gY29yZSAxNjQgcjMxMDggMzFlMTlmOSAtIEguMjY0L01QRUctNCBBVkMgY29kZWMgLSBDb3B5bGVmdCAyMDAzLTIwMjMgLSBodHRwOi8vd3d3LnZpZGVvbGFuLm9yZy94MjY0Lmh0bWwgLSBvcHRpb25zOiBjYWJhYz0wIHJlZj0zIGRlYmxvY2s9MTowOjAgYW5hbHlzZT0weDE6MHgxMTEgbWU9aGV4IHN1Ym1lPTcgcHN5PTEgcHN5X3JkPTEuMDA6MC4wMCBtaXhlZF9yZWY9MSBtZV9yYW5nZT0xNiBjaHJvbWFfbWU9MSB0cmVsbGlzPTEgOHg4ZGN0PTAgY3FtPTAgZGVhZHpvbmU9MjEsMTEgZmFzdF9wc2tpcD0xIGNocm9tYV9xcF9vZmZzZXQ9LTIgdGhyZWFkcz0xIGxvb2thaGVhZF90aHJlYWRzPTEgc2xpY2VkX3RocmVhZHM9MCBucj0wIGRlY2ltYXRlPTEgaW50ZXJsYWNlZD0wIGJsdXJheV9jb21wYXQ9MCBjb25zdHJhaW5lZF9pbnRyYT0wIGJmcmFtZXM9MCB3ZWlnaHRwPTAga2V5aW50PTI1MCBrZXlpbnRfbWluPTEgc2NlbmVjdXQ9NDAgaW50cmFfcmVmcmVzaD0wIHJjX2xvb2thaGVhZD00MCByYz1jcmYgbWJ0cmVlPTEgY3JmPTIzLjAgcWNvbXA9MC42MCBxcG1pbj0wIHFwbWF4PTY5IHFwc3RlcD00IGlwX3JhdGlvPTEuNDAgYXE9MToxLjAwAIAAAAAOZYiEBb///w9FAAFPf4AAAAAGQZo4CvqA"></video>
 <div id="calib"></div>
 
 <div id="panel">
@@ -155,15 +156,20 @@
 "use strict";
 
 /* ---------- Force: alle Paare aus 2,3,5,6 ohne Doppel ---------- */
-/* Gezogen wird aus einem Beutel: jeder der zwoelf Werte kommt einmal pro
+/* Gezogen wird aus einem Beutel: jeder der achtzehn Werte kommt einmal pro
    Durchlauf, zwei gleiche nie hintereinander. Erst danach wird die Zeit auf
    den gezogenen Wert gelegt. Dadurch ist die Verteilung gleichmaessig,
    die Abweichung zur echten Zeit betraegt hoechstens 0,5 s. */
-var VALID=[23,25,26,32,35,36,52,53,56,62,63,65];
+// Ziffern 2,3,5,6,9 ohne Doppel, ohne 25 und 52
+var VALID=[23,26,29,32,35,36,39,53,56,59,62,63,65,69,92,93,95,96];
 var bag=[], lastVal=null;
 try{
   var st=JSON.parse(localStorage.getItem("uhr.bag")||"null");
-  if(st&&Array.isArray(st.bag)){ bag=st.bag; lastVal=st.last; }
+  if(st&&Array.isArray(st.bag)){
+    // alte Werte aus einer frueheren Menge verwerfen
+    bag=st.bag.filter(function(v){ return VALID.indexOf(v)>=0; });
+    lastVal=(VALID.indexOf(st.last)>=0)?st.last:null;
+  }
 }catch(e){}
 function saveBag(){ try{ localStorage.setItem("uhr.bag",JSON.stringify({bag:bag,last:lastVal})); }catch(e){} }
 function refill(){
@@ -549,14 +555,28 @@ function frame(){
   requestAnimationFrame(frame);
 }
 
-/* ---------- Wake Lock ---------- */
-var wl=null;
-function wake(){ if(!("wakeLock" in navigator)) return;
-  navigator.wakeLock.request("screen").then(function(l){wl=l;}).catch(function(){}); }
-function release(){ if(wl){ try{wl.release();}catch(e){} wl=null; } }
+/* ---------- Bildschirm wach halten ----------
+   Solange die App im Vordergrund ist, bleibt der Bildschirm an, egal ob die
+   Stoppuhr laeuft oder steht. Zwei Wege gleichzeitig: die Wake-Lock-Schnittstelle
+   und als Rueckfall ein stummes Endlosvideo, das iOS am Sperren hindert. */
+var wl=null, vid=document.getElementById("wakeVid");
+function keepAwake(){
+  if(document.visibilityState!=="visible") return;
+  if("wakeLock" in navigator && !wl){
+    navigator.wakeLock.request("screen").then(function(l){
+      wl=l; l.addEventListener("release",function(){ wl=null; });
+    }).catch(function(){});
+  }
+  if(vid){ vid.muted=true; var pr=vid.play(); if(pr&&pr.catch) pr.catch(function(){}); }
+}
+function wake(){ keepAwake(); }
+function release(){ /* bewusst leer: wir halten den Bildschirm dauerhaft an */ }
 document.addEventListener("visibilitychange",function(){
-  if(document.visibilityState==="visible"&&running) wake();
+  if(document.visibilityState==="visible") keepAwake();
 });
+document.addEventListener("pointerdown",keepAwake,{passive:true,capture:true});
+document.addEventListener("touchstart",keepAwake,{passive:true,capture:true});
+setInterval(function(){ if(!wl||(vid&&vid.paused)) keepAwake(); },15000);
 
 /* ---------- Eingabe ---------- */
 function bind(el,fn){
